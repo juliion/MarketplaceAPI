@@ -91,12 +91,12 @@ namespace MarketplaceBLL.Services
 
             if (!string.IsNullOrWhiteSpace(queryParams.Seller))
             {
-                query = query.Where(s => EF.Functions.Like(s.Seller, $"%{queryParams.Seller}%"));
+                query = query.Where(s => s.Seller.ToLower().Contains(queryParams.Seller.ToLower()));
             }
 
             if (!string.IsNullOrWhiteSpace(queryParams.ItemName))
             {
-                query = query.Where(s => EF.Functions.Like(s.Item.Name, $"%{queryParams.ItemName}%"));
+                query = query.Where(s => s.Item.Name.ToLower().Contains(queryParams.ItemName.ToLower()));
             }
 
             var total = await query.CountAsync();
