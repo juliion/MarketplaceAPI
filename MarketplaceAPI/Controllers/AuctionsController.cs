@@ -1,19 +1,12 @@
 ﻿using AutoMapper;
 using FluentValidation;
-using MarketplaceAPI.Validators.Items;
-using MarketplaceAPI.ViewModels.Items;
 using MarketplaceAPI.ViewModels.Sales;
 using MarketplaceBLL.DTOs;
-using MarketplaceBLL.DTOs.Items.Requests;
-using MarketplaceBLL.DTOs.Items.Responses;
 using MarketplaceBLL.DTOs.Sales.Requests;
 using MarketplaceBLL.DTOs.Sales.Responses;
 using MarketplaceBLL.Exceptions;
 using MarketplaceBLL.Interfaces;
-using MarketplaceBLL.Services;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
 
 namespace MarketplaceAPI.Controllers
 {
@@ -25,19 +18,25 @@ namespace MarketplaceAPI.Controllers
         private readonly ISaleService _saleService;
         private IValidator<CreateSaleVM> _createSaleValidator;
         private IValidator<UpdateSaleVM> _updateSaleValidator;
+        private IValidator<SalesQueryParams> _salesQueryParamsValidator;
         private readonly IMapper _mapper;
 
-        public AuctionsController(ISaleService saleService, IValidator<CreateSaleVM> createSaleValidator, IValidator<UpdateSaleVM> updateSaleValidator, IMapper mapper)
+        public AuctionsController(ISaleService saleService, IValidator<CreateSaleVM> createSaleValidator, IValidator<UpdateSaleVM> updateSaleValidator, IValidator<SalesQueryParams> salesQueryParamsValidator, IMapper mapper)
         {
             _saleService = saleService;
             _createSaleValidator = createSaleValidator;
             _updateSaleValidator = updateSaleValidator;
+            _salesQueryParamsValidator = salesQueryParamsValidator;
             _mapper = mapper;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetSales([FromQuery]SalesQueryParams queryParams)
         {
+            var validationRes = _salesQueryParamsValidator.Validate(queryParams);
+            if (!validationRes.IsValid)
+                return BadRequest(validationRes);
+
             var pagedSales = await _saleService.GetSales(queryParams);
 
             var pagedSalesVM = _mapper.Map<PagedResponse<SaleDTO>, PagedResponse<SaleVM>>(pagedSales);
